@@ -9,6 +9,8 @@ void print_help ();
 
 void remove_content_dir (string path);
 
+bool is_setup_trash ();
+
 class Trash
 {
     private:
@@ -20,9 +22,9 @@ class Trash
 
         Trash();
 
-        int start(int narg, const char ** args);
+        void start(int narg, const char ** args);
 
-        int exec ();
+        void exec ();
 };
 
 

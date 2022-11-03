@@ -1,0 +1,4 @@
+#define ERNARGS 1
+#define ERINVALIDCMD 2
+#define ERNOTINSTALL 3
+#define ERFIND 4

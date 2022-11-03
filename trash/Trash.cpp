@@ -1,12 +1,8 @@
 #include "Trash.h"
 
-int Trash::start (int narg, const char ** args)
+void Trash::start (int narg, const char ** args)
 {
-    if (narg < 2 || narg > 3)
-    {
-        cout << "Invalid use trash, write \"trash help\"" << endl;
-        return -1;
-    }
+    if (narg < 2 || narg > 3)  throw (ERNARGS);
 
     string start_cmd (args[1]);
     string start_arg ((narg == 3) ? args[2] : "");
@@ -17,45 +13,51 @@ int Trash::start (int narg, const char ** args)
         {
             cmd = start_cmd;
             cmd_arg = start_arg;
-            return 0;
+            return;
         }
     }
 
-    return -1;
+    throw (ERINVALIDCMD);
 }
 
 Trash::Trash()
 {
-    string trash_path = set_path (getenv ("HOME"), ".SmartTrash");
-    setenv ("TRASHPATH", trash_path.c_str(), 1);
+    // string trash_path = set_path (getenv ("HOME"), ".SmartTrash");
+    // //setenv ("TRASHPATH", trash_path.c_str(), 1);
 }
 
-int Trash::exec()
+void Trash::exec()
 {
     if (cmd == "remove")
     {
-        rename (set_path (getenv ("PWD"), cmd_arg.c_str()).c_str(), set_path (getenv ("TRASHPATH"), cmd_arg.c_str()).c_str());
-        fileTrash.add_value (cmd_arg, set_path (getenv ("PWD"), cmd_arg.c_str()));
+        if (rename (set_path (getenv ("PWD"), cmd_arg.c_str()).c_str(), 
+            set_path (getenv ("TRASHPATH"), cmd_arg.c_str()).c_str()) < 0)
+        {
+            if (!is_setup_trash())
+                throw (ERNOTINSTALL);
+            else
+                throw (ERFIND);
+        }
 
-        return 0;
+        fileTrash.add_value (cmd_arg, set_path (getenv ("PWD"), cmd_arg.c_str()));
     }
 
     if (cmd == "list")
     {
         fileTrash.print();
-        return 0;
     }
 
     if (cmd == "recov")
     {
         int index = atoi (cmd_arg.c_str());
 
+
         pair <string, string> this_object = fileTrash.getObject (index);
         
-        rename (set_path (getenv ("TRASHPATH"), this_object.first.c_str()).c_str(), this_object.second.c_str());
-        fileTrash.remove_value (this_object.first);
+        if (rename (set_path (getenv ("TRASHPATH"), this_object.first.c_str()).c_str(), this_object.second.c_str()) < 0)
+            return throw (ERNOTINSTALL);
 
-        return 0;
+        fileTrash.remove_value (this_object.first);
     }
 
     if (cmd == "clr")
@@ -63,19 +65,32 @@ int Trash::exec()
         int index = atoi (cmd_arg.c_str());
         pair <string, string> this_object = fileTrash.getObject (index);
 
-        fileTrash.remove_value (this_object.first);
-        remove (set_path (getenv ("TRASHPATH"), this_object.first.c_str()).c_str());
+        DIR * dir = opendir (set_path (getenv ("TRASHPATH"), this_object.first.c_str()).c_str());
+        if (dir) 
+        {
+            remove_content_dir (set_path (getenv("TRASHPATH"), this_object.first.c_str()));
+            closedir (dir);
+        }
+        else
+            if (!is_setup_trash()) throw (ERNOTINSTALL);
+                else 
+                    if (errno == ENOENT) throw (ERFIND);
 
-        return 0;
+        if (remove (set_path (getenv ("TRASHPATH"), this_object.first.c_str()).c_str()) < 0)
+        {
+            if (!is_setup_trash())
+                throw (ERNOTINSTALL);
+            else 
+                throw (ERFIND);
+        }
+        
+        fileTrash.remove_value (this_object.first);
     }
 
     if (cmd == "clrall")
     {
-        fileTrash.clear();
-
         remove_content_dir (getenv ("TRASHPATH"));
-
-        return 0;
+        fileTrash.clear();
     }
 
     if (cmd == "recovall")
@@ -85,22 +100,18 @@ int Trash::exec()
 
         while (it_map != this_map.end())
         {
-            rename (set_path (getenv ("TRASHPATH"), it_map->first.c_str()).c_str(), it_map->second.c_str());
+            if (rename (set_path (getenv ("TRASHPATH"), it_map->first.c_str()).c_str(), it_map->second.c_str()) < 0)
+                throw (ERNOTINSTALL);
             it_map++;
         }
 
-        fileTrash.clear();
-
-        return 0;
+        return fileTrash.clear();
     }
 
     if (cmd == "help")
     {
         print_help();
-        return 0;
     }
-
-    return -1;
 }
 
 void print_help ()
@@ -120,6 +131,7 @@ void print_help ()
 void remove_content_dir (string path)
 {
     DIR * path_dir = opendir (path.c_str());
+    if (!path_dir) throw (ERNOTINSTALL);
 
     struct dirent * info_file = readdir (path_dir);
 
@@ -130,10 +142,23 @@ void remove_content_dir (string path)
             if (info_file->d_type == DT_DIR)
                 remove_content_dir (set_path (path.c_str(), info_file->d_name));
 
-            remove (set_path (path.c_str(), info_file->d_name).c_str());
+            if (remove (set_path (path.c_str(), info_file->d_name).c_str()) < 0) throw (ERNOTINSTALL);
         }
 
         info_file = readdir (path_dir);
     }
+}
+
+bool is_setup_trash()
+{     
+    char * s = getenv ("TRASHPATH");
+
+    DIR* _dir = opendir (getenv ("TRASHPATH"));
+
+    bool res = _dir;
+
+    closedir (_dir);
+
+    return res;
 }
 

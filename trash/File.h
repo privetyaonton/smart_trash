@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
+#include "error.h"
 
 using namespace std;
 

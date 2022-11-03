@@ -1,7 +1,8 @@
 #include "File.h"
 
 FileTrash::FileTrash() {
-    string file_trash_path = set_path (getenv ("HOME"), ".list_trash");
+    setenv ("TRASHPATH", set_path (getenv ("HOME"), ".SmartTrash").c_str(), 1);
+    string file_trash_path = set_path (getenv ("TRASHPATH"), ".list_trash");
     setenv ("LISTTRASH", file_trash_path.c_str(), 1);
 
     fd = open (file_trash_path.c_str(), O_RDWR | O_CREAT);
@@ -73,6 +74,9 @@ string FileTrash::get_path_obj(string name)
 void FileTrash::add_value (string name, string path)
 {
     fd = open (getenv ("LISTTRASH"), O_RDWR);
+    if (fd < 0)
+        throw (ERNOTINSTALL);
+
     lseek (fd, 0, SEEK_END);
 
     int count;
@@ -98,6 +102,7 @@ void FileTrash::remove_value (string name)
     map <string, string>::iterator it_map = dataTrash.begin();
 
     fd = open (getenv ("LISTTRASH"), O_RDWR | O_TRUNC);
+    if (fd < 1) throw (ERNOTINSTALL);
 
     int offset = 0;
 
@@ -149,11 +154,16 @@ pair <string, string> FileTrash::getObject(int index)
         i++;
         it_map++;
     }
+
+    throw (ERFIND);
 }
 
 void FileTrash::clear()
 {
     fd = open (getenv ("LISTTRASH"), O_RDWR | O_TRUNC);
+    if (fd < 1)
+        throw (ERNOTINSTALL);
+
     dataTrash.clear();
 }
 
