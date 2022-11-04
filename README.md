@@ -20,6 +20,12 @@ First, clone this repository to yourself
 git clone https://github.com/privetyaonton/smart_trash
 ```
 
+Then go to the working folder of the project
+
+```
+cd smart_trash/trash
+```
+
 After that run the configuration script
 
 ```
