@@ -4,32 +4,30 @@ path_list="$path_trash/.list_trash"
 
 if [ -d $HOME/.SmartTrash ] && [ -e $HOME/.list_trash ]
 then
-echo "/////////Smart Trash already installed//////////"
+echo "Error: Smart Trash already installed"
 exit
 fi
 
 if !([ -d $HOME/.SmartTrash ])
 then
 mkdir $path_trash
-fi
-
-if !([ -e $HOME/.SmartTrash/.list_trash ])
+touch $path_list
+elif !([ -e $HOME/.SmartTrash/.list_trash ])
 then
 touch $path_list
 fi
 
 if g++ main.cpp File.cpp Trash.cpp -o trash
 then 
-echo "Compilation completed successfully"
-echo ".................................."
+echo "Success: Compilation completed successfully"
 else
-echo "Compilation failed"
-echo "Smart Trash can installation failed"
+echo "Error: Compilation failed"
+echo "Error: Smart Trash can installation failed"
 exit
 fi
 mv ./trash /usr/local/bin 
 
-echo "/////Smart Trash has been installed successfully//////"
+echo "Success: Smart Trash has been installed successfully"
 
 
 
