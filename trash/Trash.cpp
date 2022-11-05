@@ -137,7 +137,8 @@ void remove_content_dir (string path)
 
     while (info_file)
     {
-        if (info_file->d_name[0] != '.')
+        if (strcmp (info_file->d_name, ".") != 0 && strcmp (info_file->d_name, "..") != 0 && 
+            strcmp (info_file->d_name, ".list_trash"))
         {
             if (info_file->d_type == DT_DIR)
                 remove_content_dir (set_path (path.c_str(), info_file->d_name));
