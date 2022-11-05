@@ -34,7 +34,7 @@ sh install.sh
 
 Wait until a message about the complete successful installation is displayed on the screen and you can work
 
-##Unistallation
+## Unistallation
 
 To remove the smart trash can, navigate to your project folder and type
 
