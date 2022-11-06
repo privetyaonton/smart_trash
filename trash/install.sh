@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/sh
 path_trash="$HOME/.SmartTrash"
 path_list="$path_trash/.list_trash" 
 
