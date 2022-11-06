@@ -29,7 +29,8 @@ cd smart_trash/trash
 After that run the configuration script
 
 ```
-sh install.sh
+chmod 777 install.sh && chmod 777 uninstall.sh
+./install.sh
 ```
 
 Wait until a message about the complete successful installation is displayed on the screen and you can work
